@@ -1,7 +1,7 @@
 # NYCU-2023-C
 NYCU C programming final project
 
-## GongZhu / Hearts
+## GongZhu / Hearts / 拱豬
 ### Background
 #### - **GNU/Linux 3.10.0-1160.95.1.el7.x86_64**
 
