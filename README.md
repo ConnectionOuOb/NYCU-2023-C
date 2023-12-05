@@ -6,7 +6,7 @@ NYCU C programming final project
 #### - **GNU/Linux 3.10.0-1160.95.1.el7.x86_64**
 #### - **gcc version 12.2.0**
 
-### Doenload
+### Download
 #### ```git clone https://github.com/Connection2Peter/NYCU-2023-C```
 
 ### Compile
