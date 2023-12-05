@@ -1,6 +1,7 @@
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define maxType 4
 #define maxPlay 4
@@ -10,7 +11,7 @@
 struct Card {
     int isUsed;
     int cardType;
-    int cardNum;
+    int cardNumb;
 };
 
 struct Player {
@@ -19,27 +20,33 @@ struct Player {
     struct Card * Cards;
 };
 
-char CardNumbs[maxGain]=["A", "1", "2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K"];
-char CardTypes[maxType]=["S", "H", "D", "C"];
+char * CardNumbs[maxGain]={"A", "2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K"};
+char * CardTypes[maxType]={"S", "H", "D", "C"};
 struct Player Ps[maxPlay];
 
 void InitPlayers() {
+    struct Card iniCard={0, -1, -1};
     struct Card IniCards[maxGain];
 
-    for (var i=0; i<maxGain; i++) IniCards[i] = {0, -1, -1};
+    for (int i=0; i<maxGain; i++) IniCards[i] = iniCard;
 
-    Ps=[
+    Ps = {
         {"You", 0, IniCards},
         {"Player1", 0, IniCards},
         {"Player2", 0, IniCards},
         {"Player3", 0, IniCards},
-    ];
+    };
 }
 
 void PrintPlayersCards() {
-    for (var i=0; i<maxPlay; i++) {
+    for (int i=0; i<maxPlay; i++) {
         printf("%-7s: ", Ps[i].name);
-        for (int j=0; j<maxGain; j++) printf("%-5d", Ps[i].Cards[j]);
+        for (int j=0; j<maxGain; j++) {
+            char * numb = Ps[i].Cards[j].cardNumb==-1 ? "-" : CardNumbs[Ps[i].Cards[j].cardNumb];
+            char * type = Ps[i].Cards[j].cardType==-1 ? "-" : CardTypes[Ps[i].Cards[j].cardType];
+
+            printf("%s%-4s", type, numb);
+        }
         printf("(%4d)\n", Ps[i].point);
     }
 }
@@ -57,12 +64,10 @@ int GongZhu() {
         for (i=1; i<maxGain+1; i++) printf("%-5d", i);
         printf("Score\n");
 
-        PrintPlayersCards()
+        PrintPlayersCards();
 
         printf("\n");
 //        for (i=1; i<maxGain+1; i++) printf("     ");
-
-
 
         break;
     }
