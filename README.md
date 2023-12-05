@@ -2,7 +2,7 @@
 NYCU C programming final project
 
 ## GongZhu / Hearts / 拱豬
-### Background
+### Environment
 #### - **GNU/Linux 3.10.0-1160.95.1.el7.x86_64**
 
 ### Doenload
