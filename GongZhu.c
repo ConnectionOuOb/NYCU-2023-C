@@ -11,10 +11,10 @@ int winner=0;
 int carType=-1;
 int numCanPlay=-1;
 int Points[maxPlay]={0};
+int CardPlayWins[maxGain]={0};
 int CardGets[maxPlay][maxGain]={0};
 int CardPlays[maxPlay][maxGain];
-int CardPlayWins[maxGain]={0};
-int CardCanPlays[maxGain]={0};
+int CardCanPlays[maxPlay][maxGain]={0};
 char CardCanPlay[50];
 char * CardTypes="SHDC";
 char * CardNumbs="A23456789TJQK";
@@ -37,6 +37,13 @@ void DebugPrint() {
         printf("\n");
     }
 
+    printf("### CardCanPlays\n");
+    for (int i=0; i<maxPlay; i++) {
+        printf("#Row %d ->", i);
+        for (int j=0; j<maxGain; j++) printf("%4d", CardCanPlays[i][j]);
+        printf("\n");
+    }
+
     printf("### CardPlays\n");
     for (int i=0; i<maxPlay; i++) {
         printf("#Row %d ->", i);
@@ -48,9 +55,6 @@ void DebugPrint() {
     for (int j=0; j<maxGain; j++) printf("%4d", CardPlayWins[j]);
     printf("\n");
 
-    printf("### CardCanPlays\n# ");
-    for (int j=0; j<maxGain; j++) printf("%4d", CardCanPlays[j]);
-
     printf("\n############ DebugPrint ############\n\n\n");
 }
 
@@ -58,7 +62,7 @@ int CheckCardSelecable(char sel) {
     int i, isOk = 0;
 
     for (i=0; i<maxGain; i++) {
-        if (sel == CardEncodes[i] && CardCanPlays[i]) isOk = 1;
+        if (sel == CardEncodes[i] && CardCanPlays[0][i]) isOk = 1;
     }
 
     return isOk;
@@ -81,17 +85,17 @@ void UpdateCardCanPlay() {
     for (int i=0; i<maxGain; i++) {
         for (int j=0; j<maxGain; j++) {
             if (CardGets[0][i] == CardPlays[0][j]) {
-                CardCanPlays[i] = 0;
+                CardCanPlays[0][i] = 0;
                 numCanPlay--;
                 break;
             } else {
-                CardCanPlays[i] = 1;
+                CardCanPlays[0][i] = 1;
             }
         }
     }
 
     for (int i=0; i<maxGain; i++) {
-        if (!CardCanPlays[i]) continue;
+        if (!CardCanPlays[0][i]) continue;
 
         if (startPos==0) {
             CardCanPlay[0] = CardEncodes[i];
@@ -199,7 +203,7 @@ void GongZhu() {
         printf("\n\n\n############ Round: %d ############\n", roundNow);
         //DebugPrint();
 
-        // 2.1. Clear standard screen output
+        // 2.1. Clear standard screen output (Linux)
         system("clear");
 
         // 2.2. Print players & cards
@@ -220,9 +224,7 @@ void GongZhu() {
             }
 
             for (i=0; i<maxGain; i++) {
-                if (CardEncodes[i] == userSelCard) {
-                    CardPlays[0][roundNow] = CardGets[0][i];
-                }
+                if (CardEncodes[i] == userSelCard) CardPlays[0][roundNow] = CardGets[0][i];
             }
         }
 
@@ -231,6 +233,7 @@ void GongZhu() {
         // 2.5. Determine who win and save
 
         // 2.6. Calculate points
+
     }
 
     if (userWin) printf("\nYou win! New Game?(Y/N):");
