@@ -199,12 +199,11 @@ void GongZhu() {
 
     // 2. Start 13 Round
     for (roundNow=0; roundNow<maxGain; roundNow++) {
-        // 2.0. Debug
-        printf("\n\n\n############ Round: %d ############\n", roundNow);
-        //DebugPrint();
-
         // 2.1. Clear standard screen output (Linux)
         system("clear");
+
+        printf("############ Round: %d ############\n", roundNow);
+        DebugPrint();
 
         // 2.2. Print players & cards
         PrintPlayersCards();
@@ -229,11 +228,27 @@ void GongZhu() {
         }
 
         // 2.4. Follow first card, Get player 2~4 card
+        /*
+        for (i=1; i<maxPlay; i++) {
+            CardPlays[i][roundNow] = CardGets[i][roundNow];
+        }
+        */
 
         // 2.5. Determine who win and save
+        /*
+        for (i=0; i<maxPlay; i++) {
+            if (CardPlays[i][roundNow] > CardPlays[winner][roundNow]) {
+                winner = i;
+            }
+        }
+        */
 
         // 2.6. Calculate points
-
+        /*
+        for (i=0; i<maxPlay; i++) {
+            Points[i] += CardPlays[i][roundNow];
+        }
+        */
     }
 
     if (userWin) printf("\nYou win! New Game?(Y/N):");
