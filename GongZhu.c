@@ -6,6 +6,7 @@
 #define maxPlay 4
 #define maxGain 13
 #define maxCard 52
+#define maxScore 16
 
 int winner = 0;
 int numCanPlay = -1;
@@ -22,9 +23,9 @@ char *CardEncodes = "abcdefghijklm";
 char *Names[maxPlay] = {"You", "Player1", "Player2", "Player3"};
 
 // Scoring method = SQ, HA, H2, H3, H4, H5, H6, H7, H8, H9, HT, HJ, HQ, HK,  DJ, CT
-int ScoreIndexs[] = {11, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 36, 48};
-int BasicValues[] = {-100, -50, -2, -3, -10, -5, -6, -7, -8, -9, -10, -20, -30, -40, 100, 50};
-int TransValues[] = {100, -50, -2, -3, -10, -5, -6, -7, -8, -9, -10, -20, -30, -40, -100, 50};
+int ScoreIndexs[maxScore] = {11, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 36, 48};
+int BasicValues[maxScore] = {-100, -50, -2, -3, -10, -5, -6, -7, -8, -9, -10, -20, -30, -40, 100, 50};
+int TransValues[maxScore] = {100, -50, -2, -3, -10, -5, -6, -7, -8, -9, -10, -20, -30, -40, -100, 50};
 
 void DebugPrint()
 {
@@ -107,9 +108,7 @@ int PlayCard(int who, int isFirst)
         if (CardCanPlays[who][i])
         {
             if (CardGets[who][i] >= cardStart && CardGets[who][i] < cardStart + maxGain)
-            {
                 nCanPlay++;
-            }
         }
     }
 
@@ -143,7 +142,7 @@ int PlayCard(int who, int isFirst)
             }
             else
             {
-                if (CardGets[who][i] > cardStart && CardGets[who][i] < cardStart + maxGain)
+                if (CardGets[who][i] >= cardStart && CardGets[who][i] < cardStart + maxGain)
                 {
                     if (pin == rng)
                     {
@@ -206,7 +205,7 @@ void UpdateCardCanPlay()
         if (nowCardType != -1)
         {
             int start = nowCardType * maxGain;
-            if (CardGets[0][i] < start || CardGets[0][i] > start + maxGain)
+            if (CardGets[0][i] < start || CardGets[0][i] >= start + maxGain)
                 continue;
         }
 
@@ -360,24 +359,81 @@ void PrintPlayersCards(int round)
 /*
 char * CardTypes="SHDC";
 char * CardNumbs="A23456789TJQK";
-// Scoring method  =    SQ, HA, H2, H3, H4, H5, H6, H7, H8, H9, HT, HJ, HQ, HK,  DJ, CT
-int ScoreIndexs[]  = {  11, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,  36, 48};
-int NormalValues[] = {-100,-50, -2, -3,-10, -5, -6, -7, -8, -9,-10,-20,-30,-40, 100, 50};
-int TransValues[]  = { 100,-50, -2, -3,-10, -5, -6, -7, -8, -9,-10,-20,-30,-40,-100, 50};
+// Scoring method =    SQ, HA, H2, H3, H4, H5, H6, H7, H8, H9, HT, HJ, HQ, HK,  DJ, CT
+int ScoreIndexs[16] = {  11, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,  36, 48};
+int BasicValues[16] = {-100,-50, -2, -3,-10, -5, -6, -7, -8, -9,-10,-20,-30,-40, 100, 50};
+int TransValues[16] = { 100,-50, -2, -3,-10, -5, -6, -7, -8, -9,-10,-20,-30,-40,-100, 50};
 */
 void CalScore()
 {
-    int i, j, trans = 0, doubleT = 0;
+    int i, j, k, trans = 0, whoGetCT = -1, goCT = -1;
     int heartStart = maxGain, heartEnd = maxGain * 2;
+    int ScoreTimes[maxPlay] = {0};
     int HeartTimes[maxPlay] = {0};
+
+    // 1. Make statistic
     for (i = 0; i < maxGain; i++)
     {
+        // 1.1. Skip non-played
         if (CardPlayWins[i] == -1)
             continue;
 
+        // 1.2. Calculate each round winner's card
         for (j = 0; j < maxPlay; j++)
         {
-            if
+            // 1.2.1 Detect who get CT
+            if (CardPlays[j][i] == ScoreIndexs[15])
+                whoGetCT = CardPlayWins[i];
+
+            // 1.2.2 Calculate number of heart cards
+            if (CardPlays[j][i] >= heartStart && CardPlays[j][i] < heartEnd)
+                HeartTimes[CardPlayWins[i]]++;
+
+            // 1.2.3 Calculate number of score cards
+            for (k = 0; k < maxScore; k++)
+            {
+                if (ScoreIndexs[k] == CardPlays[j][i])
+                    ScoreTimes[CardPlayWins[i]]++;
+            }
+        }
+    }
+
+    // 2. Processing CT type
+    if (whoGetCT != -1)
+        goCT = ScoreTimes[whoGetCT] > 1;
+
+    // 3. Processing All heart
+    for (i = 0; i < maxPlay; i++)
+        trans = HeartTimes[i] == 13;
+
+    // 4. Precessing who get all score cards
+    for (i = 0; i < maxPlay; i++)
+        if (ScoreTimes[i] == maxScore)
+            Points[i] += 1000;
+
+    // 5. Final score calculation
+    for (i = 0; i < maxGain; i++)
+    {
+        // 5.1. Skip non-played
+        if (CardPlayWins[i] == -1)
+            continue;
+
+        // 5.2. Calculate each round winner's card
+        for (j = 0; j < maxPlay; j++)
+        {
+            // 5.2.1 Iterate and add score
+            for (k = 0; k < maxScore; k++)
+            {
+                if (ScoreIndexs[k] == CardPlays[j][i])
+                {
+                    if (k == 15 && goCT)
+                        continue;
+                    else
+                        Points[CardPlayWins[i]] += trans ? TransValues[k] : BasicValues[k];
+
+                    break;
+                }
+            }
         }
     }
 }
