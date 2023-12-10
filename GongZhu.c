@@ -26,11 +26,12 @@ void DebugPrint() {
     printf("### winner     : %d\n",  winner);
     printf("### numCanPlay : %d\n",  numCanPlay);
     printf("### CardCanPlay : %s\n",  CardCanPlay);
+    printf("### nowCardType : %d\n",  nowCardType);
     
     printf("### Points\n");
-    for (int i=0; i<maxPlay; i++) printf("# %d -> %d\n", i, Points[i]);
+    for (int i=0; i<maxPlay; i++) printf("# %d -> %d\t", i, Points[i]);
 
-    printf("### CardGets\n");
+    printf("\n### CardGets\n");
     for (int i=0; i<maxPlay; i++) {
         printf("#Row %d ->", i);
         for (int j=0; j<maxGain; j++) printf("%4d", CardGets[i][j]);
@@ -55,37 +56,45 @@ void DebugPrint() {
     for (int j=0; j<maxGain; j++) printf("%4d", CardPlayWins[j]);
     printf("\n");
 
-    printf("\n############ DebugPrint ############\n\n\n");
+    printf("############ DebugPrint ############\n\n\n");
 }
 
 int CheckCardSelecable(char sel) {
     int i, isOk = 0;
 
     for (i=0; i<maxGain; i++) {
-        if (sel == CardEncodes[i] && CardCanPlays[0][i]) isOk = 1;
+        if (sel == CardEncodes[i] && CardCanPlays[0][i]) {
+            if (nowCardType==-1) {
+                isOk = 1;
+            } else {
+                int start=nowCardType*maxGain;
+                if (CardGets[0][i]>start && CardGets[0][i]<start+maxGain) isOk = 1;
+            }
+        }
     }
 
     return isOk;
 }
 
-int PlayCard(int who) {
-    int i, numCanPlay=0, selFromAll=0;
+int PlayCard(int who, int isFirst) {
+    int i, nCanPlay=0, selFromAll=0;
     int cardStart=nowCardType*maxGain;
 
     for (i=0; i<maxGain; i++) {
         if (CardCanPlays[who][i]) {
             if (CardGets[who][i] > cardStart && CardGets[who][i] < cardStart+maxGain) {
-                numCanPlay++;
+                nCanPlay++;
             }
         }
     }
 
-    if (numCanPlay==0) {
+    if (nCanPlay==0 || isFirst) {
         selFromAll=1;
-        for (i=0; i<maxGain; i++) if (CardCanPlays[who][i]) numCanPlay++;
+        nCanPlay=0;
+        for (i=0; i<maxGain; i++) if (CardCanPlays[who][i]) nCanPlay++;
     };
 
-    int rng = rand() % numCanPlay;
+    int rng = rand() % nCanPlay;
     int sel, pin=0;
 
     for (i=0; i<maxGain; i++) {
@@ -242,7 +251,8 @@ void PrintPlayersCards(int round) {
                 printf("    ");
             }
             else {
-                if (winner==i) printf("%s# ", GetCardEncode(CardPlays[i][j]));
+                //printf("!!!! %d\t%d\t%d\n", i, j, CardPlayWins[j]);
+                if (CardPlayWins[j]==i) printf("%s# ", GetCardEncode(CardPlays[i][j]));
                 else printf("%-4s", GetCardEncode(CardPlays[i][j]));
             }
         }
@@ -275,18 +285,27 @@ void GongZhu() {
     // 2. Start 13 Round
     for (roundNow=0; roundNow<maxGain; roundNow++) {
         // 2.1. Clear standard screen output (Linux)
-        //system("clear");
+        system("clear");
 
         printf("############ Round: %d ############\n", roundNow);
         //DebugPrint();
+
+        if (winner != 0) {
+            int firstCard = PlayCard(winner, 1);
+            CardPlays[winner][roundNow] = firstCard;
+            nowCardType = firstCard/maxGain;
+            for (i=1; i<maxPlay; i++) {
+                if (i!=winner) CardPlays[i][roundNow] = PlayCard(i, 0);
+            }
+        }
+
+        UpdateCardCanPlay();
 
         // 2.2. Print players & cards
         PrintPlayersCards(roundNow);
 
         // 2.3. Play cards
         if (winner == 0) {
-            UpdateCardCanPlay();
-
             if (numCanPlay == maxGain) printf("Your turn, you can select all :");
             else printf("Your turn, you can select %s :", CardCanPlay);
 
@@ -302,10 +321,23 @@ void GongZhu() {
             }
 
             nowCardType=CardPlays[0][roundNow]/maxGain;
-            for (i=1; i<maxPlay; i++) CardPlays[i][roundNow] = PlayCard(i);
+            for (i=1; i<maxPlay; i++) CardPlays[i][roundNow] = PlayCard(i, 0);
         } else {
-            
+            printf("Your turn, you can select %s :", CardCanPlay);
+
+            int outRange=0;
+            while (!CheckCardSelecable(userSelCard)) {
+                if (outRange) printf("Out of Range ! Please select from %s: ", CardCanPlay);
+                scanf(" %c", &userSelCard);
+                outRange=1;
+            }
+
+            for (i=0; i<maxGain; i++) {
+                if (CardEncodes[i] == userSelCard) CardPlays[0][roundNow] = CardGets[0][i];
+            }
         }
+
+        nowCardType=-1;
 
         // 2.5. Determine who win and save
         UpdateWinner(roundNow);
