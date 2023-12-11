@@ -9,6 +9,7 @@
 #define maxScore 16
 
 int winner = 0;
+int isNoCard = 0;
 int numCanPlay = -1;
 int nowCardType = -1;
 int Points[maxPlay] = {0};
@@ -89,8 +90,7 @@ int CheckCardSelecable(char sel)
             }
             else
             {
-                int start = nowCardType * maxGain;
-                if (CardGets[0][i] >= start && CardGets[0][i] < start + maxGain)
+                if (isNoCard || CardGets[0][i] / maxGain == nowCardType)
                     isOk = 1;
             }
         }
@@ -187,8 +187,10 @@ void UpdateCardCanPlay()
                 if (CardGets[player][i] == CardPlays[player][j])
                 {
                     CardCanPlays[player][i] = 0;
+
                     if (player == 0)
                         numCanPlay--;
+
                     break;
                 }
                 else
@@ -199,6 +201,7 @@ void UpdateCardCanPlay()
         }
     }
 
+    isNoCard = 1;
     for (int i = 0; i < maxGain; i++)
     {
         if (!CardCanPlays[0][i])
@@ -206,10 +209,11 @@ void UpdateCardCanPlay()
 
         if (nowCardType != -1)
         {
-            int start = nowCardType * maxGain;
-            if (CardGets[0][i] < start || CardGets[0][i] >= start + maxGain)
+            if (CardGets[0][i] / maxGain != nowCardType)
                 continue;
         }
+
+        isNoCard = 0;
 
         if (startPos == 0)
         {
@@ -225,6 +229,28 @@ void UpdateCardCanPlay()
         }
     }
 
+    if (isNoCard)
+    {
+        for (int i = 0; i < maxGain; i++)
+        {
+            if (!CardCanPlays[0][i])
+                continue;
+
+            if (startPos == 0)
+            {
+                CardCanPlay[0] = CardEncodes[i];
+                startPos++;
+            }
+            else
+            {
+                CardCanPlay[startPos] = ',';
+                CardCanPlay[startPos + 1] = ' ';
+                CardCanPlay[startPos + 2] = CardEncodes[i];
+                startPos += 3;
+            }
+        }
+    }
+
     CardCanPlay[startPos] = '\0';
 }
 
@@ -236,11 +262,15 @@ void UpdateWinner(int r)
 
     for (p = 0; p < maxPlay; p++)
     {
-        int num = CardPlays[p][r] % maxGain == 0 ? CardPlays[p][r] + maxGain : CardPlays[p][r];
-        int win = CardPlays[winner][r] % maxGain == 0 ? CardPlays[winner][r] + maxGain : CardPlays[winner][r];
-        if (win < num)
+        int numT = CardPlays[p][r] / maxGain;
+        int numV = CardPlays[p][r] % maxGain == 0 ? maxGain : CardPlays[p][r] % maxGain;
+        int winT = CardPlays[winner][r] / maxGain;
+        int winV = CardPlays[winner][r] % maxGain == 0 ? maxGain : CardPlays[winner][r] % maxGain;
+
+        if (winV < numV)
             winner = p;
-        printf("%d\t%d\n", num, winner);
+        else if (winV == numV && winT < numT)
+            winner = p;
     }
 
     CardPlayWins[r] = winner;
@@ -536,7 +566,7 @@ void GongZhu()
     PrintPlayersCards(maxGain + 1);
 
     // 4. Get winner
-    for (int i = 1, i < maxPlay; i++)
+    for (int i = 1; i < maxPlay; i++)
         if (Points[i] > Points[0])
             userWin = 0;
 
