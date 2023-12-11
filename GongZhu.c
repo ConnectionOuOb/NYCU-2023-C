@@ -30,6 +30,7 @@ int TransValues[maxScore] = {100, -50, -2, -3, -10, -5, -6, -7, -8, -9, -10, -20
 void DebugPrint()
 {
     printf("############ DebugPrint ############\n");
+
     printf("### winner     : %d\n", winner);
     printf("### numCanPlay : %d\n", numCanPlay);
     printf("### CardCanPlay : %s\n", CardCanPlay);
@@ -202,6 +203,7 @@ void UpdateCardCanPlay()
     {
         if (!CardCanPlays[0][i])
             continue;
+
         if (nowCardType != -1)
         {
             int start = nowCardType * maxGain;
@@ -441,7 +443,7 @@ void CalScore()
 void GongZhu()
 {
     // 0. Declare initial vars
-    int i, userWin = 0;
+    int i, userWin = 1;
     int roundNow;
     char isOk, userSelCard;
 
@@ -530,13 +532,20 @@ void GongZhu()
         CalScore();
     }
 
+    // 3. Print result
     PrintPlayersCards(maxGain + 1);
+
+    // 4. Get winner
+    for (int i = 1, i < maxPlay; i++)
+        if (Points[i] > Points[0])
+            userWin = 0;
 
     if (userWin)
         printf("\nYou win! New Game?(Y/N):");
     else
         printf("\nYou lose! New Game?(Y/N):");
 
+    // 5. Ask next game ?
     scanf(" %c", &isOk);
 
     if (isOk == 'Y' || isOk == 'y')
