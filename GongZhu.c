@@ -13,6 +13,7 @@ int isNoCard = 0;
 int numCanPlay = -1;
 int nowCardType = -1;
 int Points[maxPlay] = {0};
+int PointNows[maxPlay] = {0};
 int CardPlayWins[maxGain];
 int CardGets[maxPlay][maxGain] = {0};
 int CardPlays[maxPlay][maxGain];
@@ -365,7 +366,8 @@ void PrintPlayersCards(int round)
                     printf("%-4s", GetCardEncode(CardPlays[i][j]));
             }
         }
-        printf("(%4d)\n", Points[i]);
+        // printf("(%4d)\n", Points[i]);
+        printf("(%4d)\n", PointNows[i]);
     }
 
     printf("\n");
@@ -470,6 +472,48 @@ void CalScore()
     }
 }
 
+void CalRealtimeScore(int round)
+{
+    int i, j, k;
+
+    for (i = 0; i < maxPlay; i++)
+    {
+        PointNows[i] = 0;
+        if (CardPlayWins[round] == i)
+        {
+            for (j = 0; j < maxScore; j++)
+            {
+                for (k = 0; k < maxPlay; k++)
+                    if (ScoreIndexs[j] == CardPlays[k][round])
+                    {
+                        PointNows[i] += BasicValues[j];
+                    }
+            }
+        }
+    }
+}
+
+void ResetGame()
+{
+    int i, j;
+
+    isNoCard = 0;
+    numCanPlay = -1;
+    nowCardType = -1;
+
+    for (i = 0; i < maxPlay; i++)
+    {
+        Points[i] = 0;
+        CardPlayWins[i] = -1;
+        for (j = 0; j < maxGain; j++)
+        {
+            CardGets[i][j] = 0;
+            CardPlays[i][j] = 0;
+            CardCanPlays[i][j] = 0;
+        }
+    }
+}
+
 void GongZhu()
 {
     // 0. Declare initial vars
@@ -486,19 +530,16 @@ void GongZhu()
         // 2.1. Clear standard screen output (Linux)
         system("clear");
 
-        printf("############ Round: %d ############\n", roundNow);
-        DebugPrint();
-
         if (winner != 0)
         {
             int firstCard = PlayCard(winner, 1);
             CardPlays[winner][roundNow] = firstCard;
             nowCardType = firstCard / maxGain;
-            for (i = 1; i < maxPlay; i++)
+            /*for (i = 1; i < maxPlay; i++)
             {
                 if (i != winner)
                     CardPlays[i][roundNow] = PlayCard(i, 0);
-            }
+            }*/
         }
 
         UpdateCardCanPlay();
@@ -553,6 +594,12 @@ void GongZhu()
             }
         }
 
+        for (i = 1; i < maxPlay; i++)
+        {
+            if (i != winner)
+                CardPlays[i][roundNow] = PlayCard(i, 0);
+        }
+
         nowCardType = -1;
 
         // 2.5. Determine who win and save
@@ -560,9 +607,13 @@ void GongZhu()
 
         // 2.6. Calculate points
         CalScore();
+
+        // 2.7. Calculate realtime points
+        CalRealtimeScore(roundNow);
     }
 
     // 3. Print result
+    system("clear");
     PrintPlayersCards(maxGain + 1);
 
     // 4. Get winner
@@ -576,10 +627,24 @@ void GongZhu()
         printf("\nYou lose! New Game?(Y/N):");
 
     // 5. Ask next game ?
-    scanf(" %c", &isOk);
+    int firstAskNext = 0;
+    while (isOk != 'Y' && isOk != 'y' && isOk != 'N' && isOk != 'n')
+    {
+        if (firstAskNext)
+            printf("Please input Y or N :");
+        else
+            firstAskNext = 1;
 
-    if (isOk == 'Y' || isOk == 'y')
-        GongZhu();
+        scanf(" %c", &isOk);
+
+        if (isOk == 'Y' || isOk == 'y')
+            ResetGame();
+
+        if (isOk == 'N' || isOk == 'n')
+            exit(0);
+    }
+
+    GongZhu();
 }
 
 int main()
