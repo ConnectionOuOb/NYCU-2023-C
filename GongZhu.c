@@ -367,7 +367,7 @@ void PrintPlayersCards(int round)
             }
         }
         // printf("(%4d)\n", Points[i]);
-        printf("(%4d)\n", PointNows[i]);
+        printf("(%4d)\n", Points[i]);
     }
 
     printf("\n");
@@ -393,7 +393,7 @@ void PrintPlayersCards(int round)
 /*
 char * CardTypes="SHDC";
 char * CardNumbs="A23456789TJQK";
-// Scoring method =    SQ, HA, H2, H3, H4, H5, H6, H7, H8, H9, HT, HJ, HQ, HK,  DJ, CT
+// Scoring method   =    SQ, HA, H2, H3, H4, H5, H6, H7, H8, H9, HT, HJ, HQ, HK,  DJ, CT
 int ScoreIndexs[16] = {  11, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,  36, 48};
 int BasicValues[16] = {-100,-50, -2, -3,-10, -5, -6, -7, -8, -9,-10,-20,-30,-40, 100, 50};
 int TransValues[16] = { 100,-50, -2, -3,-10, -5, -6, -7, -8, -9,-10,-20,-30,-40,-100, 50};
@@ -497,6 +497,8 @@ void ResetGame()
 {
     int i, j;
 
+    winner = 0;
+
     isNoCard = 0;
     numCanPlay = -1;
     nowCardType = -1;
@@ -504,6 +506,7 @@ void ResetGame()
     for (i = 0; i < maxPlay; i++)
     {
         Points[i] = 0;
+        PointNows[i] = 0;
         CardPlayWins[i] = -1;
         for (j = 0; j < maxGain; j++)
         {
@@ -519,7 +522,7 @@ void GongZhu()
     // 0. Declare initial vars
     int i, userWin = 1;
     int roundNow;
-    char isOk, userSelCard;
+    char isOk = 'a', userSelCard;
 
     // 1. Initialize cards and soring by type & num
     InitCards();
@@ -535,11 +538,6 @@ void GongZhu()
             int firstCard = PlayCard(winner, 1);
             CardPlays[winner][roundNow] = firstCard;
             nowCardType = firstCard / maxGain;
-            /*for (i = 1; i < maxPlay; i++)
-            {
-                if (i != winner)
-                    CardPlays[i][roundNow] = PlayCard(i, 0);
-            }*/
         }
 
         UpdateCardCanPlay();
