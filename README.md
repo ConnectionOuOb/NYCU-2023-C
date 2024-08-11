@@ -1,4 +1,5 @@
-# 2023 NYCU C programming final project
+# NYCU 2023 C programming
+### 2023 NYCU C programming final project
 
 ## Command line game
 ### GongZhu / Hearts / 拱豬
